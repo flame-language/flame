@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="MacRoman" standalone="no"?>
+<jardesc>
+    <jar path="/Users/jordancraig/Desktop/flame.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/Flame/flame.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="false" saveDescription="true" storeRefactorings="true" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=Flame/src&lt;flame{Flame.java[Flame" manifestLocation="/Flame/manifest" manifestVersion="1.0" reuseManifest="false" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
+        <javaElement handleIdentifier="=Flame/src"/>
+        <file path="/Flame/.classpath"/>
+        <file path="/Flame/manifest.txt"/>
+        <file path="/Flame/.project"/>
+    </selectedElements>
+</jardesc>

@@ -1,0 +1,279 @@
+/**
+ * JTB template file created by SF JavaCC plugin 1.5.17+ wizard for JTB 1.4.0.2+ and JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5";  static = true;  JTB_P = "flame";
+}PARSER_BEGIN(Flame)package flame;
+
+//import flamesyntaxtree.*;
+import flame.visitor.*;
+
+public class Flame
+{
+  public static void main(String args [])
+  {
+    System.out.println("Reading from standard input...");
+    System.out.print("Enter an expression like \"1+(2+3)*var;\" : ");
+    new Flame(System.in);
+    try
+    {
+      Start start = Flame.Start();
+      DepthFirstVoidVisitor v = new MyVisitor();
+      start.accept(v);
+      System.out.println("OK.");
+    }
+    catch (Exception e)
+    {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+    }
+  }
+}
+class MyVisitor extends DepthFirstVoidVisitor{  public void visit(NodeToken n)  {    System.out.println("visit " + n.tokenImage);  }}PARSER_END(Flame)/*
+      For skipping a space between keyword, tab and new lines
+      or returns, but last is for skipping comments.
+
+      To comment in Flame
+
+            #Comment here...#
+
+*/
+SKIP :
+{
+  "# #"
+| "\t"
+| "\n"
+| "\r"
+| <"\"" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+
+/*
+Flame has only six reserved keywords.
+
+      The ÒrequireÓ keyword is used for Java library importation like ÒimportÓ in Java :
+
+      require java lang .
+
+      This will  import all "java.lang" classes.
+
+      The ÒdefÓ keyword is like the same as "def" in Python for
+	  variable declaration, you must use "def" to declare a variable.
+
+      def myVar = 1.
+
+      ÒifÓ and ÒwhileÓ
+      Both have the same function as many other languages such as VB. This is a classic representation
+      of an if and while loop.
+
+      if 1 > 0 do
+            #Do something#
+      stop
+
+      while 1 > 0 do
+            #Infinite loop#
+      stop
+*/
+TOKEN : /*
+KEYWORDS */
+{
+      < REQUIRE: "require" >
+|     < IF: "if" >
+|     < WHILE: "while" >
+|     < DO: "do" >
+|     < STOP: "stop" >
+|     < DEF : "def" >
+}
+
+/*
+      Here, we group symbols to mathematical operational symbols (+,-,*,/,%)
+      and mathematical relational symbols.
+	  (>,<,==,>=,<=,!=).
+*/
+
+TOKEN : /* SYMBOLS */
+{
+      < DOT: "." >
+|     < COLON: ":" >
+|     < EQ: "==" >
+|     < GT: ">"  >
+|     < LT: "<"  >
+|     < GE: ">=" >
+|     < LE: "<=" >
+|     < NE: "!=" >
+|     < PLUS: "+">
+|     < MINUS: "-" >
+|     < MUL: "*" >
+|     < DIV: "/" >
+|     < MOD: "%" >
+|     < ASSIGN: "=" >
+}
+
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL: ["1"-"9"] (["0"-"9"])* | "0"   >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|  < #LETTER: ["_","a"-"z","A"-"Z"] >
+|  < #DIGIT: ["0"-"9"] >
+}
+
+/* GRAMMAR start here */
+
+
+/*
+      This is an enter point for Flame parsing. Without it, a parser can't started.
+      We must specify a require statement in order for Flame to execute cleanly.
+*/
+void Start():{}
+{
+  (
+    StatementExpression()
+  )*
+}
+
+/*
+      Package importation can specify a single class or many:
+
+      require java.*
+      require java.lang.NullPointerException
+      ...
+*/
+
+void Require():{}
+{
+      "require"
+      (
+        < IDENTIFIER >
+      )+
+}
+
+/* Simple Math Operations */
+void MathExpression():{ }
+{
+  AdditiveExpression()
+}
+
+void AdditiveExpression():{}
+{
+  MultiplicativeExpression() ( ( "+" | "-" )
+MultiplicativeExpression() )*
+}
+
+void MultiplicativeExpression():{}
+{
+  UnaryExpression() ( ( "*" | "/" | "%" ) UnaryExpression() )*
+}
+
+void UnaryExpression():{}
+{
+  "(" MathExpression() ")" | < INTEGER_LITERAL > | VariableName()
+}
+
+/* Start Simple Relational Test */
+void RelationalExprssion():{}
+{
+      RelationalEqualityExpression()
+}
+
+void RelationalEqualityExpression():{}
+{
+      RelationalGreaterExpression()
+      (
+        (
+           "==" | "!="
+        )
+        RelationalGreaterExpression()
+      )*
+}
+
+void RelationalGreaterExpression():{}
+{
+      RelationalLessExpression()
+      (
+        (
+           ">" | ">="
+        )
+         RelationalLessExpression()
+      )*
+}
+
+void RelationalLessExpression():{}
+{
+      UnaryRelational()
+      (
+        (
+           "<" | "<="
+        )
+
+        UnaryRelational()
+
+      )*
+}
+
+void UnaryRelational():{}
+{
+         < INTEGER_LITERAL > |
+VariableName()
+}
+/* End Simple Relational Test */
+
+
+void IfExpression():{}
+{
+      "if" RelationalExprssion() "do"
+            (
+              StatementExpression()
+            ) *
+      "stop"
+}
+
+
+void WhileExpression():{}
+{
+      "while" RelationalExprssion() "do"
+            (
+              StatementExpression()
+            ) *
+      "stop"
+}
+
+
+void VariableDeclaration():{}
+{
+      "def" VariableName() "=" MathExpression() ";"
+}
+
+void VariableAssign():
+{
+}
+{
+      VariableName() "=" MathExpression() ";"
+}
+
+void VariableName():{}
+{
+      < IDENTIFIER >
+}
+
+void JavaStaticMethods():{}
+{
+      < IDENTIFIER > /* Class Name */
+      (
+        ":" < IDENTIFIER > /* Member or Method */
+      )+
+
+      "(" MathExpression() ( "," MathExpression() )* ")" ";"
+
+}
+
+
+void StatementExpression():{}
+{
+  VariableDeclaration()
+| LOOKAHEAD(2) VariableAssign()
+| JavaStaticMethods()
+| IfExpression()
+| WhileExpression()
+}
